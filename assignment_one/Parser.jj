@@ -1,0 +1,108 @@
+/*
+ * Example template taken from Appel's book.
+ */
+
+/*****************************
+ **** SECTION 1 - OPTIONS ****
+ *****************************/
+
+options { JAVA_UNICODE_ESCAPE = true; }
+
+
+/*******************************
+ **** SECTION 2 - USER CODE ****
+ *******************************/
+
+PARSER_BEGIN(Parser)
+  public class Parser {
+    public static void main(String args[]) {
+      Parser parser;
+
+      if(args.length == 0) {
+        System.out.println("Reading from standard input . . .");
+        parser = new Parser(System.in);
+      } else if(args.length == 1) {
+        try {
+          parser = new Parser(new java.io.FileInputStream(args[0]));
+        } catch (java.io.FileNotFoundException e) {
+          System.err.println("File " + args[0] + " not found.");
+          return;
+        }
+      } else {
+        System.out.println("Parser: Usage is one of:");
+        System.out.println("\tjava Parser < inputfile");
+        System.out.println("OR");
+        System.out.println("\tjava Parser inputfile");
+      }
+
+      // Parser is now ready for input so just read until EOF.
+      for(Token t = getNextToken(); t.kind != EOF; t = getNextToken()) {
+        if(t.kind == NUM) {
+          System.out.print("Number");
+          System.out.print("("+t.image+") ");
+        } else if(t.kind == ID) {
+          System.out.print("Identifier");
+          System.out.print("("+t.image+") ");
+        } else {
+          System.out.print(t.image+" ");
+        }
+      }
+    }
+  }
+PARSER_END(Parser)
+
+/***************************************
+ **** SECTION 3 - TOKEN DEFINITIONS ****
+ ***************************************/
+
+TOKEN_MGR_DECLS : {
+  // Incremented or decremented depending on how deep our current level of
+  // nested comments are.
+  static int commentDepth = 0;
+}
+
+// The regexes that if matched will just be skipped.
+SKIP : {
+  // Single line comments handled here.
+  <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+| " "
+| "\t"
+| "\n"
+}
+
+SKIP : {
+  // Multi-line comments handled here.
+  "/*" { commentDepth++; } : IN_COMMENT
+}
+
+<IN_COMMENT> SKIP: {
+  "/*" { commentDepth++; }
+| "*/" { commentDepth--;
+          if(commentDepth == 0)
+            SwitchTo(DEFAULT);
+       }
+| <~[]>
+}
+
+// For the regex on the right, the token on the left is generated.
+TOKEN : {
+  <BEGIN: "begin">
+| <END: "end">
+| <MAIN: "main">
+}
+
+TOKEN : {
+  <NUM: (<DIGIT>)+>
+| <ID: (<CHAR>)+>
+| <#DIGIT: ["0"-"9"]>
+| <#CHAR: ["a"-"z"]|["A"-"Z"]>
+}
+
+TOKEN : {
+  <OTHER: ~[]>
+}
+
+
+/****************************************************************
+ **** SECTION 4 - GRAMMAR AND PRODUCTION RULES - NOT NEEDED. ****
+ ****************************************************************/
