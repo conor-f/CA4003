@@ -1,0 +1,10 @@
+main
+begin
+  // A simple one-line comment.
+  /* A multi-line comment.
+     A multi-line comment.
+     A multi-line comment.
+     A multi-line comment.
+  */
+  /* A /* nested /* comment */ A /* nested */ comment */ . */
+end
