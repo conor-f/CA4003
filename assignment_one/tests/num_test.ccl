@@ -1,0 +1,12 @@
+main
+begin
+  var arg_1:integer;
+  var arg_2:integer;
+  var arg_3:integer;
+  var arg_4:integer;
+
+  arg_1 = -6;
+  arg_2 = 89;
+  arg_3 = 0;
+  arg_4 = -0;
+end

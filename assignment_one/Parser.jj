@@ -85,15 +85,54 @@ SKIP : {
 }
 
 // For the regex on the right, the token on the left is generated.
+// Language reserved words.
 TOKEN : {
   <BEGIN: "begin">
 | <END: "end">
 | <MAIN: "main">
+| <VAR: "var">
+| <CONST: "const">
+| <RETURN: "return">
+| <INTEGER: "integer">
+| <BOOLEAN: "boolean">
+| <VOID: "void">
+| <IF: "if">
+| <ELSE: "else">
+| <TRUE: "true">
+| <FALSE: "false">
+| <WHILE: "while">
+| <IS: "is">
+| <SKIP_TOKEN: "SKIP">
 }
 
+// Symbol tokens.
 TOKEN : {
-  <NUM: (<DIGIT>)+>
-| <ID: (<CHAR>)+>
+  <COMMA: ",">
+| <SEMIC: ";">
+| <COLON: ":">
+| <EQUALS: "=">
+| <LB: "(">
+| <RB: ")">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TILDE: "~">
+| <OR: "||">
+| <AND: "&&">
+| <LOGICAL_EQ: "==">
+| <NOT_EQ: "!=">
+| <LT: "<">
+| <LT_EQ: "<=">
+| <GT: ">">
+| <GT_EQ: ">=">
+}
+
+
+TOKEN : {
+  // NUM must start with a positive digit or a negative symbol followed by
+  // a positive digit.
+  <NUM: ( (["1"-"9"]((<DIGIT>)*))
+        | ("-"["1"-"9"]((<DIGIT>)*)) )>
+| <ID: ((<CHAR>)+(<CHAR> | <NUM> | ["_"])*)>
 | <#DIGIT: ["0"-"9"]>
 | <#CHAR: ["a"-"z"]|["A"-"Z"]>
 }
