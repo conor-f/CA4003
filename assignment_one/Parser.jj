@@ -35,17 +35,13 @@ PARSER_BEGIN(Parser)
         System.out.println("\tjava Parser inputfile");
       }
 
-      // Parser is now ready for input so just read until EOF.
-      for(Token t = getNextToken(); t.kind != EOF; t = getNextToken()) {
-        if(t.kind == NUM) {
-          System.out.print("Number");
-          System.out.print("("+t.image+") ");
-        } else if(t.kind == ID) {
-          System.out.print("Identifier");
-          System.out.print("("+t.image+") ");
-        } else {
-          System.out.print(t.image+" ");
-        }
+      // Parser is now ready for input.
+      try {
+        parser.program();
+        System.out.println("Program parsed successfully.");
+      } catch (ParseException e) {
+        System.out.println(e.getMessage());
+        System.out.println("Parser encountered errors during parse.");
       }
     }
   }
@@ -145,3 +141,115 @@ TOKEN : {
 /****************************************************************
  **** SECTION 4 - GRAMMAR AND PRODUCTION RULES - NOT NEEDED. ****
  ****************************************************************/
+
+void program() : {} {
+  declList() functionList() main() <EOF>
+}
+
+void declList() : {} {
+  (decl() <SEMIC> declList())?
+}
+
+void decl() : {} {
+  varDecl() | constDecl()
+}
+
+void varDecl() : {} {
+  <VAR> <ID> <COLON> type()
+}
+
+void type() : {} {
+  <INTEGER> | <BOOLEAN> | <VOID>
+}
+
+void constDecl() : {} {
+  <CONST> <ID> <COLON> type() <EQUALS> expression()
+}
+
+void functionList() : {} {
+  (function() functionList())?
+}
+
+void function() : {} {
+  type() <ID> <LB> paramList() <RB> <IS>
+  declList()
+  <BEGIN>
+  statementBlock()
+  <RETURN> <LB> (expression())? <RB> <SEMIC>
+  <END>
+}
+
+void paramList() : {} {
+  (nempParamList())?
+}
+
+void nempParamList() : {} {
+  (<ID> <COLON> type())
+| (<ID> <COLON> type() <COMMA> nempParamList())
+}
+
+void main() : {} {
+  <MAIN>
+  <BEGIN>
+  declList()
+  statementBlock()
+  <END>
+}
+
+void statementBlock() : {} {
+  (statement() statementBlock())?
+}
+
+void statement() : {} {
+  (<ID> <EQUALS> expression() <SEMIC>)
+| (<ID> <LB> argList() <RB> <SEMIC>)
+| (<BEGIN> statementBlock() <END>)
+| (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>)
+| (<WHILE> condition() <BEGIN> statementBlock() <END>)
+| (<SKIP_TOKEN> <SEMIC>)
+}
+
+void expression() : {} {
+  (fragment() binaryArithOp() fragment())
+| (<LB> expression() <RB>)
+| (<ID> <LB> expression() <RB>)
+| (fragment())
+}
+
+void binaryArithOp() : {} {
+  <PLUS> | <MINUS>
+}
+
+void fragment() : {} {
+  (<ID>)
+| (<MINUS> <ID>)
+| (<NUM>)
+| (<TRUE>)
+| (<FALSE>)
+| (expression())
+}
+
+void condition() : {} {
+  (<TILDE> condition())
+| (<LB> condition() <RB>)
+| (expression() compOpp() expression())
+| (condition() (<OR> | <AND>) condition())
+}
+
+void compOpp() : {} {
+  <LOGICAL_EQ>
+| <NOT_EQ>
+| <LT>
+| <LT_EQ>
+| <GT>
+| <GT_EQ>
+}
+
+void argList() : {} {
+  (nempArgList())?
+}
+
+void nempArgList() : {} {
+  (<ID>)
+| (<ID> <COMMA> nempArgList())
+}
