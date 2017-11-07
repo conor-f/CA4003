@@ -219,7 +219,7 @@ void statement_prime() : {} {
 void expression() : {} {
   (fragment() expression_frag())
 | (<LB> expression() <RB>)
-| (<ID> <LB> expression() <RB>)
+| (<ID> <LB> argList() <RB>)
 }
 
 void expression_frag() : {} {
@@ -236,14 +236,20 @@ void fragment() : {} {
 | (<NUM>)
 | (<TRUE>)
 | (<FALSE>)
-| (expression())
+| (fragment() expression_frag())
+| (<LB> expression() <RB>)
+| (<ID> <LB> argList() <RB>)
 }
 
 void condition() : {} {
   (<TILDE> condition())
 | (<LB> condition() <RB>)
 | (expression() compOpp() expression())
-| (condition() (<OR> | <AND>) condition())
+| ((<OR> | <AND>) condition_prime())
+}
+
+void condition_prime() : {} {
+  condition()
 }
 
 void compOpp() : {} {
