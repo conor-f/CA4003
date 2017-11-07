@@ -98,7 +98,7 @@ TOKEN : {
 | <FALSE: "false">
 | <WHILE: "while">
 | <IS: "is">
-| <SKIP_TOKEN: "SKIP">
+| <SKIP_TOKEN: "skip">
 }
 
 // Symbol tokens.
@@ -184,8 +184,11 @@ void paramList() : {} {
 }
 
 void nempParamList() : {} {
-  (<ID> <COLON> type())
-| (<ID> <COLON> type() <COMMA> nempParamList())
+  (<ID> <COLON> type()) (nempParamList_comma())?
+}
+
+void nempParamList_comma() : {} {
+  <COMMA> nempParamList()
 }
 
 void main() : {} {
@@ -201,19 +204,26 @@ void statementBlock() : {} {
 }
 
 void statement() : {} {
-  (<ID> <EQUALS> expression() <SEMIC>)
-| (<ID> <LB> argList() <RB> <SEMIC>)
+  (<ID> statement_prime())
 | (<BEGIN> statementBlock() <END>)
 | (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>)
 | (<WHILE> condition() <BEGIN> statementBlock() <END>)
 | (<SKIP_TOKEN> <SEMIC>)
 }
 
+void statement_prime() : {} {
+  (<EQUALS> expression() <SEMIC>)
+| (<LB> argList() <RB> <SEMIC>)
+}
+
 void expression() : {} {
-  (fragment() binaryArithOp() fragment())
+  (fragment() expression_frag())
 | (<LB> expression() <RB>)
 | (<ID> <LB> expression() <RB>)
-| (fragment())
+}
+
+void expression_frag() : {} {
+  (binaryArithOp() fragment())?
 }
 
 void binaryArithOp() : {} {
@@ -250,6 +260,5 @@ void argList() : {} {
 }
 
 void nempArgList() : {} {
-  (<ID>)
-| (<ID> <COMMA> nempArgList())
+  <ID> (<COMMA> nempArgList())?
 }
