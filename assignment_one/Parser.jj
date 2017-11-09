@@ -217,7 +217,23 @@ void statement_prime() : {} {
 }
 
 void expression() : {} {
-  (fragment() expression_frag())
+  (base_expression() expression_prime())
+}
+
+void expression_prime() : {} {
+  (binaryArithOp() expression())?
+}
+
+// The simplest expression case.
+// Used by the general expression.
+void base_expression() : {} {
+  // Everything from fragment:
+  (<ID>)
+| (<MINUS> <ID>)
+| (<NUM>)
+| (<TRUE>)
+| (<FALSE>)
+  // And the rest of expression:
 | (<LB> expression() <RB>)
 | (<ID> <LB> argList() <RB>)
 }
@@ -243,7 +259,11 @@ void condition() : {} {
   (<TILDE> condition())
 | (<LB> condition() <RB>)
 | (expression() compOpp() expression())
-| (condition() (<OR> | <AND>) condition())
+| ((<OR> | <AND>) condition())
+}
+
+void condition_prime() : {} {
+  condition()
 }
 
 void compOpp() : {} {
