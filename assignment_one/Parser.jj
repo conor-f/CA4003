@@ -219,7 +219,7 @@ void statement_prime() : {} {
 void expression() : {} {
   (fragment() expression_frag())
 | (<LB> expression() <RB>)
-| (<ID> <LB> expression() <RB>)
+| (<ID> <LB> argList() <RB>)
 }
 
 void expression_frag() : {} {
