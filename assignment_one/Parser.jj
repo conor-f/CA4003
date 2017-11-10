@@ -230,14 +230,17 @@ void fragment() : {} {
 }
 
 void condition() : {} {
-  (<TILDE> condition())
-| (<LB> condition() <RB>)
-| (expression() compOpp() expression())
-| (condition() orAndRule() condition())
+  (<TILDE> condition() condition_prime())
+| (<LB> condition() <RB> condition_prime())
+| (expression() compOpp() expression() condition_prime())
 }
 
 void orAndRule() : {} {
   (<OR> | <AND>)
+}
+
+void condition_prime() : {} {
+  (orAndRule() condition() condition_prime())?
 }
 
 void compOpp() : {} {
