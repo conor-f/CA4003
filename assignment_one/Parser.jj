@@ -228,42 +228,32 @@ void expression_prime() : {} {
 // Used by the general expression.
 void base_expression() : {} {
   // Everything from fragment:
-  (<ID>)
-| (<MINUS> <ID>)
+  (<MINUS> <ID>)
 | (<NUM>)
 | (<TRUE>)
 | (<FALSE>)
+  // Removing new choice conflict.
+| ((<ID>) (<LB> argList() <RB>)?)
   // And the rest of expression:
 | (<LB> expression() <RB>)
-| (<ID> <LB> argList() <RB>)
 }
 
 void expression_frag() : {} {
-  (binaryArithOp() fragment())?
+  (binaryArithOp() expression())?
 }
 
 void binaryArithOp() : {} {
   <PLUS> | <MINUS>
 }
 
-void fragment() : {} {
-  (<ID>)
-| (<MINUS> <ID>)
-| (<NUM>)
-| (<TRUE>)
-| (<FALSE>)
-| (expression())
+void condition() : {} {
+  base_condition() ((<OR> | <AND>) condition())
 }
 
-void condition() : {} {
+void base_condition() : {} {
   (<TILDE> condition())
 | (<LB> condition() <RB>)
 | (expression() compOpp() expression())
-| ((<OR> | <AND>) condition())
-}
-
-void condition_prime() : {} {
-  condition()
 }
 
 void compOpp() : {} {
