@@ -199,9 +199,13 @@ void statementBlock() : {} {
   (statement() statementBlock())?
 }
 
+void statement_id() : {} {
+  (<EQUALS> expression() <SEMIC>)
+| (<LB> argList() <RB> <SEMIC>)
+}
+
 void statement() : {} {
-  (<ID> <EQUALS> expression() <SEMIC>)
-| (<ID> <LB> argList() <RB> <SEMIC>)
+  (<ID> statement_id())
 | (<BEGIN> statementBlock() <END>)
 | (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>)
 | (<WHILE> condition() <BEGIN> statementBlock() <END>)
