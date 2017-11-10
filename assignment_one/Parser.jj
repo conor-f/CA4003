@@ -222,9 +222,8 @@ void fragment_1_and_prime() : {} {
   (binaryArithOp() fragment() fragment_1_and_prime())?
 }
 
-void fragment_2() : {} {
-  (<ID>)
-| (<MINUS> <ID>)
+void fragment_2_without_id() : {} {
+  (<MINUS> <ID>)
 | (<NUM>)
 | (<TRUE>)
 | (<FALSE>)
@@ -234,10 +233,15 @@ void binaryArithOp() : {} {
   <PLUS> | <MINUS>
 }
 
+void fragment_id() : {} {
+  (<LB> argList() <RB> fragment_1_and_prime())
+| fragment_1_and_prime()
+}
+
 void fragment() : {} {
   (<LB> expression() <RB> fragment_1_and_prime())
-| (<ID> <LB> argList() <RB> fragment_1_and_prime())
-| (fragment_2() fragment_1_and_prime())
+| (<ID> fragment_id())
+| (fragment_2_without_id() fragment_1_and_prime())
 }
 
 void condition() : {} {
