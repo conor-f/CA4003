@@ -184,8 +184,7 @@ void paramList() : {} {
 }
 
 void nempParamList() : {} {
-  (<ID> <COLON> type())
-| (<ID> <COLON> type() <COMMA> nempParamList())
+  (<ID> <COLON> type() (<COMMA> <ID> <COLON> type())*)
 }
 
 void main() : {} {
