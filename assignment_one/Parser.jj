@@ -233,7 +233,11 @@ void condition() : {} {
   (<TILDE> condition())
 | (<LB> condition() <RB>)
 | (expression() compOpp() expression())
-| (condition() (<OR> | <AND>) condition())
+| (condition() orAndRule() condition())
+}
+
+void orAndRule() : {} {
+  (<OR> | <AND>)
 }
 
 void compOpp() : {} {
