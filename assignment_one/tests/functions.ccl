@@ -60,5 +60,5 @@ begin
   arg_1 = -6;
   arg_2 = five;
 
-  result = multiply (arg_1, arg_2)
+  result = multiply (arg_1, arg_2);
 end

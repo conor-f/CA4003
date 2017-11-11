@@ -6,7 +6,11 @@
  **** SECTION 1 - OPTIONS ****
  *****************************/
 
-options { JAVA_UNICODE_ESCAPE = true; }
+options {
+  IGNORE_CASE = true;
+  JAVA_UNICODE_ESCAPE = true; 
+  LOOKAHEAD=3;
+}
 
 
 /*******************************
@@ -16,7 +20,7 @@ options { JAVA_UNICODE_ESCAPE = true; }
 PARSER_BEGIN(Parser)
   public class Parser {
     public static void main(String args[]) {
-      Parser parser;
+      Parser parser = null;
 
       if(args.length == 0) {
         System.out.println("Reading from standard input . . .");
@@ -127,7 +131,8 @@ TOKEN : {
   // NUM must start with a positive digit or a negative symbol followed by
   // a positive digit.
   <NUM: ( (["1"-"9"]((<DIGIT>)*))
-        | ("-"["1"-"9"]((<DIGIT>)*)) )>
+        | ("-"["1"-"9"]((<DIGIT>)*))
+        | "0" )>
 | <ID: ((<CHAR>)+(<CHAR> | <NUM> | ["_"])*)>
 | <#DIGIT: ["0"-"9"]>
 | <#CHAR: ["a"-"z"]|["A"-"Z"]>
