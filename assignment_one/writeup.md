@@ -2,7 +2,9 @@
 
 ### Introduction ###
 &nbsp;&nbsp;I found this assignment pretty difficult and ended up taking multiple different paths before deciding on this approach. All of the different ways I tried to make the grammar LL(1) are in different branches on the Github repository for the assignment: https://github.com/conor-f/CA4003
+
 &nbsp;&nbsp;The real sticking point were the choice conflicts that appeared after removing the left recursion from expression and fragment. My final solution is not that great as it limits the language to only allow a simple expression in condition. The language loses very little functionality this way but is still slightly different from the original grammar. The place where this change was is clearly commented in the Parser.jj file at line 266.
+
 &nbsp;&nbsp;I had the the clearest view of what I was doing and what edits I needed to make when I was working it out on paper, I include pictures of my workings at the end of the document for reference.
   
 ### Initial Steps ###
@@ -10,6 +12,7 @@
   
 ### First Issues ###
 &nbsp;&nbsp;Doing this presented me with two left-recursion errors. One direct (condition -> condition) and one indirect (expression -> fragment -> expression). I solved the direct left recursion easily with the help of the notes and then made the indirect left recursion direct and solved that. Removing the left recursion between expression and fragment lead to me creating fragment_prime which also had issues.
+
 &nbsp;&nbsp;The issue with fragment_prime was that it presented a choice conflict from two possible rules leading to epsilon. I noticed that this would not be the case if I split fragment_prime into two different rules - fragment_prime_bool and fragment_prime_num. This approach looked like it would work until I realized that fragment_prime was referenced in the general fragment rule where it was preceded by expression or a function call - neither of which we can know the type of at this stage of the compilation process, so this approach wasn't going to work.
   
 ### Redo ###
