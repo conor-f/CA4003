@@ -8,5 +8,4 @@ begin
   arg_1 = -6;
   arg_2 = 89;
   arg_3 = 0;
-  arg_4 = -0;
 end

@@ -127,7 +127,8 @@ TOKEN : {
   // NUM must start with a positive digit or a negative symbol followed by
   // a positive digit.
   <NUM: ( (["1"-"9"]((<DIGIT>)*))
-        | ("-"["1"-"9"]((<DIGIT>)*)) )>
+        | ("-"["1"-"9"]((<DIGIT>)*))
+        | "0" )>
 | <ID: ((<CHAR>)+(<CHAR> | <NUM> | ["_"])*)>
 | <#DIGIT: ["0"-"9"]>
 | <#CHAR: ["a"-"z"]|["A"-"Z"]>
@@ -209,15 +210,12 @@ void statement() : {} {
 | (<SKIP_TOKEN> <SEMIC>)
 }
 
+/*
 void expression() : {} {
   (fragment() binaryArithOp() fragment())
 | (<LB> expression() <RB>)
 | (<ID> <LB> argList() <RB>)
 | (fragment())
-}
-
-void binaryArithOp() : {} {
-  <PLUS> | <MINUS>
 }
 
 void fragment() : {} {
@@ -227,6 +225,22 @@ void fragment() : {} {
 | (<TRUE>)
 | (<FALSE>)
 | (expression())
+}
+*/
+
+void expression() : {} {
+  (<LB> expression() <RB>)
+| (<ID> expression_id())
+| (<MINUS> <ID> | <NUM> | <TRUE> | <FALSE>) (binaryArithOp() expression())?
+}
+
+void expression_id() : {} {
+  (<LB> argList() <RB>)
+| (binaryArithOp() expression())?
+}
+
+void binaryArithOp() : {} {
+  <PLUS> | <MINUS>
 }
 
 void condition() : {} {
