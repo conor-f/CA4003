@@ -10,6 +10,7 @@ options {
   JAVA_UNICODE_ESCAPE = true;
   IGNORE_CASE = true;
   LOOKAHEAD = 1;
+  //DEBUG_PARSER = true;
 }
 
 
@@ -262,7 +263,11 @@ void condition() : {} {
 void condition() : {} {
   (<TILDE> condition() condition_prime())
 | (<LB> condition() <RB> condition_prime())
-| (expression() compOpp() expression() condition_prime())
+/* this is an issue here I couldn't get around. expanding expression() would
+ * leave you with a choice conflict on <LB>. I limit it to only a "simple"
+ * expression being allowed here. */
+| (<ID> expression_id() compOpp() expression() condition_prime())
+| (((<MINUS> <ID> | <NUM> | <TRUE> | <FALSE>) (binaryArithOp() expression())?) compOpp() expression() condition_prime())
 }
 
 void condition_prime() : {} {
