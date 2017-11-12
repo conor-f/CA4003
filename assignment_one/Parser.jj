@@ -6,7 +6,11 @@
  **** SECTION 1 - OPTIONS ****
  *****************************/
 
-options { JAVA_UNICODE_ESCAPE = true; }
+options { 
+  JAVA_UNICODE_ESCAPE = true;
+  IGNORE_CASE = true;
+  LOOKAHEAD = 3;
+}
 
 
 /*******************************
@@ -16,7 +20,7 @@ options { JAVA_UNICODE_ESCAPE = true; }
 PARSER_BEGIN(Parser)
   public class Parser {
     public static void main(String args[]) {
-      Parser parser;
+      Parser parser = null;
 
       if(args.length == 0) {
         System.out.println("Reading from standard input . . .");
@@ -280,6 +284,5 @@ void argList() : {} {
 }
 
 void nempArgList() : {} {
-  (<ID>)
-| (<ID> <COMMA> nempArgList())
+  (<ID> (<COMMA> <ID>)*)
 }
