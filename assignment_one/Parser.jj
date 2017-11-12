@@ -243,11 +243,28 @@ void binaryArithOp() : {} {
   <PLUS> | <MINUS>
 }
 
+/*
 void condition() : {} {
   (<TILDE> condition())
 | (<LB> condition() <RB>)
 | (expression() compOpp() expression())
-| (condition() (<OR> | <AND>) condition())
+| (condition() orAndRule() condition())
+}
+*/
+
+void condition() : {} {
+  (<TILDE> condition() condition_prime())
+| (<LB> condition() <RB> condition_prime())
+| (expression() compOpp() expression() condition_prime())
+}
+
+void condition_prime() : {} {
+  (orAndRule() condition() condition_prime())
+| {}
+}
+
+void orAndRule() : {} {
+  <OR> | <AND>
 }
 
 void compOpp() : {} {
