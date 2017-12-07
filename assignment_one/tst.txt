@@ -1,0 +1,105 @@
+I'm doing an assignment in compiler contruction and I'm having trouble with left recursion. JavaCC gives me an error "Left recursion detected" for expression() and condition(), shown below. The second line of each are the same, so I assume that is the problem.
+
+A → Aα|β
+
+A → βA'
+
+A' → ε|αA'
+This was the formula used to show how to eliminate left recursion. I have understood the concept in lectures and from online videos and explanations, but I can't figure out how to apply it here. Can someone show me how to eliminate the left recursion?
+
+void expression() :
+{ }
+{
+  fragment() binary_arith_op() fragment()
+| <OPAREN> expression() <CPAREN>
+| <ID> <OPAREN> arg_list() <CPAREN>
+| fragment()
+}
+
+void fragment() :
+{ }
+{ (<MINUS_SIGN>)? <ID> | <NUM> | <TRUE> | <FALSE> | expression() }
+
+void condition() :
+{ }
+{ <TILDE> condition()
+| <OPAREN> condition() <CPAREN>
+| expression() comp_op() expression()
+| condition() (<OR> | <AND>) condition()
+}
+compiler-construction javacc left-recursion
+shareimprove this question
+asked Nov 5 at 14:54
+
+Jack Finan
+335
+add a comment
+1 Answer
+active oldest votes
+up vote
+0
+down vote
+Similar examples can be found in just about any book on compiling. You could also take a look at my tutorial Parsing Expressions by Recursive Descent. Or any of a number of other free tutorials.
+
+Here is a solution. First I'm going to rewrite expression a bit like this
+
+void expression() :
+{ }
+{
+  expression() binary_arith_op() expression()
+| 
+  simpleExpression() :
+}
+
+void simpleExpression() :
+{ }
+{ (<MINUS_SIGN>)? <ID> | <NUM> | <TRUE> | <FALSE> 
+| <OPAREN> expression() <CPAREN>
+| <ID> <OPAREN> arg_list() <CPAREN> }
+Now it's clear what alpha and beta are. So we get
+
+void expression() :
+{ }
+{
+  simpleExpression() expressionPrime()
+}
+
+
+void expressionPrime() :
+{ }
+{
+  binary_arith_op() expression() 
+|
+  {}
+}
+But in JavaCC, we might as well use a loop (i.e. Kleene star).
+
+void expression() :
+{ }
+{
+  simpleExpression() (binary_arith_op() simpleExpression())*
+}
+
+void simpleExpression() :
+{ }
+{ (<MINUS_SIGN>)? <ID> | <NUM> | <TRUE> | <FALSE> 
+| <OPAREN> expression() <CPAREN>
+| <ID> <OPAREN> arg_list() <CPAREN> }
+Similarly for condition
+
+void condition() :
+{ }
+{ 
+    simpleCondition() ((<OR> | <AND>) simpleCondition())*
+}
+
+void simpleCondition() :
+{ }
+{
+  <TILDE> condition()
+| <OPAREN> condition() <CPAREN>
+| expression() comp_op() expression()
+}
+That eliminates the left recursion.
+
+It still leaves you with some choice conflicts. These can be eliminated using syntactic lookahead. You'll also want to deal with operator precedence too, but that's straight-forward. See the "classic" solution in my tutorial.
