@@ -1,0 +1,20 @@
+integer add (x:integer, y:integer) is
+  var result:integer;
+begin
+  result = x + y;
+
+  return (result);
+end
+
+main
+begin
+  var arg_1:integer;
+  var arg_2:integer;
+  var result:integer;
+  const five:integer = 5;
+
+  arg_1 = -6;
+  arg_2 = five;
+
+  result = add (arg_1, arg_2);
+end
