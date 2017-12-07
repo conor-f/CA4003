@@ -154,24 +154,42 @@ SimpleNode program() #Prog : {} {
   { return jjtThis; }
 }
 
-void declList() #DeclList: {} {
-  (decl() <SEMIC> declList())?
+void declList() #void: {} {
+  nempDeclList()
+|
+  emptyDeclList()
 }
 
-void decl() #Decl : {} {
+void nempDeclList() #DeclList: {} {
+  (decl())+
+}
+
+void emptyDeclList() #EmptyDeclList: {} {
+  {}
+}
+
+void decl() #void : {} {
   varDecl() | constDecl()
 }
 
 void varDecl() #VarDecl : {} {
-  <VAR> <ID> <COLON> type()
+  <VAR> id() <COLON> type()
 }
 
-void type() #Type : {} {
-  <INTEGER> | <BOOLEAN> | <VOID>
+void id() #ID : {} {
+  <ID>
+}
+
+void type() #void : {} {
+  <INTEGER> #IntType
+| 
+  <BOOLEAN> #BoolType
+|
+  <VOID> #VoidType
 }
 
 void constDecl() #ConstDecl : {} {
-  <CONST> <ID> <COLON> type() <EQUALS> expression()
+  <CONST> id() <COLON> type() <EQUALS> expression()
 }
 
 void functionList() #FunctionList : {} {
@@ -207,23 +225,69 @@ void statementBlock() #StatementBlock : {} {
   (statement() statementBlock())?
 }
 
-void statement() #Statement : {} {
-  (<ID> statement_id())
-| (<BEGIN> statementBlock() <END>)
-| (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>)
-| (<WHILE> condition() <BEGIN> statementBlock() <END>)
-| (<SKIP_TOKEN> <SEMIC>)
+void statement() #void : {} {
+  (id() statement_id())
+| 
+  scope_block()
+|
+  if_statement()
+|
+  while_statement()
+|
+  empty_statement()
 }
 
-void statement_id() #StatementID : {} {
-  (<EQUALS> expression() <SEMIC>)
-| (<LB> argList() <RB> <SEMIC>)
+void statement_id() #void : {} {
+  assign_statement()
+| statement_function_call()
 }
 
-void expression() #Expression : {} {
+void scope_block() #ScopeBlock : {} {
+  <BEGIN> statementBlock() <END>
+}
+
+void if_statement() #IfStatement : {} {
+  <IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>
+}
+
+void while_statement() #WhileStatement : {} {
+  <WHILE> condition() <BEGIN> statementBlock() <END>
+}
+
+void empty_statement() #EmptyStatement : {} {
+  <SKIP_TOKEN> <SEMIC>
+}
+
+void statement_function_call() #FunctionStatement : {} {
+  <LB> argList() <RB> <SEMIC>
+}
+
+void assign_statement() #Assign : {} {
+  <EQUALS> expression() <SEMIC>
+}
+
+void expression() #void : {} {
   (<LB> expression() <RB>)
-| (<ID> expression_id())
-| (<MINUS> <ID> | <NUM> | <TRUE> | <FALSE>) (binaryArithOp() expression())?
+|
+  (<ID> expression_id())
+|
+  (negative_id() | num() | trueVal() | falseVal()) (binaryArithOp() expression())?
+}
+
+void negative_id() #Negative : {} {
+  <MINUS> id()
+}
+
+void num() #Num : {} {
+  <NUM>
+}
+
+void trueVal() #True : {} {
+  <TRUE>
+}
+
+void falseVal() #False : {} {
+  <FALSE>
 }
 
 void expression_id() #ExpressionID : {} {
