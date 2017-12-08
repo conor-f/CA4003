@@ -20,3 +20,16 @@
   
 ### Conclusion ###
 &nbsp;&nbsp;The issue I had could have been solved by a LOOKAHEAD of 3, but it could also have been solved by using a syntactic lookahead which is probably what I would have done if I was doing this independently of the condition that the grammar had to be strictly LL(1). I sometimes found that forcing it to be LL(1) with the choice conflicts made the grammar less readable to me and I think it would be an interesting project to write a Prolog script to take a grammar in EBNF form and return a LL(1) equivalent if one exists. It could be used to keep the readability of a grammar allowing lookaheads while still getting the memory improvements of having a LL(1) parser.
+
+
+### Images ###
+
+![](images/IMG_20171112_210642.jpg)
+![](images/IMG_20171112_210734.jpg)
+![](images/IMG_20171112_210757.jpg)
+![](images/IMG_20171112_210654_2.jpg)
+![](images/IMG_20171112_210741.jpg)
+![](images/IMG_20171112_210813.jpg)
+![](images/IMG_20171112_210719_2.jpg)
+![](images/IMG_20171112_210752.jpg)
+![](images/IMG_20171112_210819.jpg)
