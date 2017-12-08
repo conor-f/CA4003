@@ -1,0 +1,18 @@
+main
+begin
+  var a:integer;
+  var result:integer;
+  const b:integer = 22;
+
+  a = 2;
+
+  result = a + b;
+
+  result = a + b + result;
+
+  result = -a + b;
+
+  result = a + -b;
+
+  result = a + -b + functionCall(a, b);
+end

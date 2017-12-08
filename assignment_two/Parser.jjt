@@ -1,0 +1,332 @@
+/*
+ * Example template taken from Appel's book.
+ */
+
+/*****************************
+ **** SECTION 1 - OPTIONS ****
+ *****************************/
+
+options { 
+  JAVA_UNICODE_ESCAPE = true;
+  IGNORE_CASE = true;
+  LOOKAHEAD = 1;
+  DEBUG_PARSER = true;
+  NODE_DEFAULT_VOID = true;
+}
+
+
+/*******************************
+ **** SECTION 2 - USER CODE ****
+ *******************************/
+
+PARSER_BEGIN(Parser)
+  public class Parser {
+    public static void main(String args[]) {
+      Parser parser = null;
+
+      if(args.length == 0) {
+        System.out.println("Reading from standard input . . .");
+        parser = new Parser(System.in);
+      } else if(args.length == 1) {
+        try {
+          parser = new Parser(new java.io.FileInputStream(args[0]));
+        } catch (java.io.FileNotFoundException e) {
+          System.err.println("File " + args[0] + " not found.");
+          return;
+        }
+      } else {
+        System.out.println("Parser: Usage is one of:");
+        System.out.println("\tjava Parser < inputfile");
+        System.out.println("OR");
+        System.out.println("\tjava Parser inputfile");
+      }
+
+      // Parser is now ready for input.
+      try {
+        SimpleNode root = parser.program();
+        System.out.println("Program parsed successfully.");
+        root.dump("");
+      } catch (ParseException e) {
+        System.out.println(e.getMessage());
+        System.out.println("Parser encountered errors during parse.");
+      }
+    }
+  }
+PARSER_END(Parser)
+
+/***************************************
+ **** SECTION 3 - TOKEN DEFINITIONS ****
+ ***************************************/
+
+TOKEN_MGR_DECLS : {
+  // Incremented or decremented depending on how deep our current level of
+  // nested comments are.
+  static int commentDepth = 0;
+}
+
+// The regexes that if matched will just be skipped.
+SKIP : {
+  // Single line comments handled here.
+  <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+| " "
+| "\t"
+| "\n"
+}
+
+SKIP : {
+  // Multi-line comments handled here.
+  "/*" { commentDepth++; } : IN_COMMENT
+}
+
+<IN_COMMENT> SKIP: {
+  "/*" { commentDepth++; }
+| "*/" { commentDepth--;
+          if(commentDepth == 0)
+            SwitchTo(DEFAULT);
+       }
+| <~[]>
+}
+
+// For the regex on the right, the token on the left is generated.
+// Language reserved words.
+TOKEN : {
+  <BEGIN: "begin">
+| <END: "end">
+| <MAIN: "main">
+| <VAR: "var">
+| <CONST: "const">
+| <RETURN: "return">
+| <INTEGER: "integer">
+| <BOOLEAN: "boolean">
+| <VOID: "void">
+| <IF: "if">
+| <ELSE: "else">
+| <TRUE: "true">
+| <FALSE: "false">
+| <WHILE: "while">
+| <IS: "is">
+| <SKIP_TOKEN: "SKIP">
+}
+
+// Symbol tokens.
+TOKEN : {
+  <COMMA: ",">
+| <SEMIC: ";">
+| <COLON: ":">
+| <EQUALS: "=">
+| <LB: "(">
+| <RB: ")">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TILDE: "~">
+| <OR: "||">
+| <AND: "&&">
+| <LOGICAL_EQ: "==">
+| <NOT_EQ: "!=">
+| <LT: "<">
+| <LT_EQ: "<=">
+| <GT: ">">
+| <GT_EQ: ">=">
+}
+
+
+TOKEN : {
+  // NUM must start with a positive digit or a negative symbol followed by
+  // a positive digit.
+  <NUM: ( (["1"-"9"]((<DIGIT>)*))
+        | ("-"["1"-"9"]((<DIGIT>)*))
+        | "0" )>
+| <ID: ((<CHAR>)+(<CHAR> | <NUM> | ["_"])*)>
+| <#DIGIT: ["0"-"9"]>
+| <#CHAR: ["a"-"z"]|["A"-"Z"]>
+}
+
+TOKEN : {
+  <OTHER: ~[]>
+}
+
+
+/****************************************************************
+ **** SECTION 4 - GRAMMAR AND PRODUCTION RULES - NOT NEEDED. ****
+ ****************************************************************/
+
+SimpleNode program() #Program : {} {
+  declList() functionList() main() <EOF>
+  { return jjtThis; }
+}
+
+void declList() : {} {
+  nempDeclList()
+|
+  emptyDeclList()
+}
+
+void emptyDeclList() : {} {
+  {}
+}
+
+void nempDeclList() #DeclList : {} {
+  (decl() <SEMIC>)+
+}
+
+void decl() : {} {
+  varDecl() | constDecl()
+}
+
+void varDecl() #VarDecl : {} {
+  <VAR> <ID> #ID <COLON> type()
+}
+
+void constDecl() #ConstDecl : {} {
+  <CONST> <ID> #ID <COLON> type() <EQUALS> expression()
+}
+
+void type() : {} {
+  <INTEGER> #IntegerType
+|
+  <BOOLEAN> #BooleanType
+|
+  <VOID> #VoidType
+}
+
+void functionList() : {} {
+  nempFunctionList()
+|
+  emptyFunctionList()
+}
+
+void emptyFunctionList() : {} {
+  {}
+}
+
+void nempFunctionList() #FunctionList : {} {
+  (function())+
+}
+
+void function() #Function : {} {
+  type() <ID> <LB> paramList() <RB> <IS>
+  declList()
+  <BEGIN>
+  statementBlock()
+  returnStatement() #ReturnStatement
+  <END>
+}
+
+void returnStatement() : {} {
+  <RETURN> <LB> (expression())? <RB> <SEMIC>
+}
+
+void paramList() : {} {
+  nempParamList()
+|
+  emptyParamList()
+}
+
+void emptyParamList() : {} {
+  {}
+}
+
+void nempParamList() #ParamList : {} {
+  param() (<COMMA> param())*
+}
+
+void param() : {} {
+  (<ID> #ID <COLON> type()) #Param(2)
+}
+
+void main() #Main : {} {
+  <MAIN>
+  <BEGIN>
+  declList()
+  statementBlock()
+  <END>
+}
+
+void statementBlock() : {} {
+  nempStatementBlock()
+|
+  emptyStatementBlock()
+}
+
+void nempStatementBlock() #StatementBlock : {} {
+  (statement())+
+}
+
+void emptyStatementBlock() #EmptyStatementBlock : {} {
+  {}
+}
+
+void statement() : {} {
+  (<ID> #ID statement_id())
+| (<BEGIN> statementBlock() <END>) #ScopingBlock
+| (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>) #IfStatement
+| (<WHILE> condition() <BEGIN> statementBlock() <END>) #WhileStatement
+| (<SKIP_TOKEN> <SEMIC>) #SkipStatement
+}
+
+void statement_id() : {} {
+  (<EQUALS> expression() <SEMIC>) #Assign(2)
+| (<LB> argList() <RB> <SEMIC>) #MethodCall(2) // Pop the ID of the method.
+}
+
+void expression() #void : {} {
+  (<LB> expression() <RB>)
+| (<ID> #ID expression_id())
+| (<MINUS> <ID> #NegativeID | <NUM> #Num | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()
+}
+
+void optionalBinOpExpr() : {} {
+  (binOpExpr())?
+}
+
+void binOpExpr() : {} {
+  (<PLUS> expression()) #Plus(2)
+|
+  (<MINUS> expression()) #Minus(2)
+}
+
+void expression_id() : {} {
+  (<LB> argList() <RB>) #MethodCall(2) // Pop the ID of the method.
+| binOpExpr()
+| {}
+}
+
+void condition() : {} {
+  (<TILDE> condition() #NotCondition condition_prime())
+| (<LB> condition() <RB> condition_prime())
+/* this is an issue here I couldn't get around. expanding expression() would
+ * leave you with a choice conflict on <LB>. I limit it to only a "simple"
+ * expression being allowed here. */
+| (<ID> #ID expression_id() compOpp_expr_cond_prime())
+| (((<MINUS> <ID> #NegNum | <NUM> #Num | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()) compOpp_expr_cond_prime())
+}
+
+void condition_prime() : {} {
+  (<OR> condition() #BooleanOr(2) condition_prime())
+| (<AND> condition() #BooleanAnd(2) condition_prime())
+| {}
+}
+
+void compOpp_expr_cond_prime() : {} {
+ 
+  <LOGICAL_EQ> expression() #Equal(2) condition_prime()
+| <NOT_EQ> expression() #NotEqual(2) condition_prime()
+| <LT> expression() #LessThan(2) condition_prime()
+| <LT_EQ> expression() #LessThanEqual(2) condition_prime()
+| <GT> expression() #GreaterThan(2) condition_prime()
+| <GT_EQ> expression() #GreaterThanEqual(2) condition_prime()
+}
+
+void argList() #Arguments: {} {
+  nempArgList()
+|
+  emptyArgList()
+}
+
+void emptyArgList() : {} {
+  {}
+}
+
+void nempArgList() : {} {
+  (<ID> #ID) (<COMMA> <ID> #ID)*
+}
