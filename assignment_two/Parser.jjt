@@ -57,8 +57,16 @@ PARSER_BEGIN(Parser)
         root.jjtAccept(pv, null);
         System.out.println("-----------------------------");
 
-        //SemanticCheckVisitor scv = new SemanticCheckVisitor();
-        //root.jjtAccept(scv, null);
+        //TypeCheckVisitor tcv = new TypeCheckVisitor();
+        //root.jjtAccept(tcv, null);
+
+        System.out.println("-----------------------------");
+        System.out.println("Running SymbolTableVisitor.");
+        SymbolTableVisitor stv = new SymbolTableVisitor();
+        root.jjtAccept(stv, null);
+        SymbolTable st = stv.getSymbolTable();
+        st.dump();
+
       } catch (ParseException e) {
         System.out.println(e.getMessage());
         System.out.println("Parser encountered errors during parse.");
@@ -217,7 +225,7 @@ void nempFunctionList() #FunctionList : {} {
 }
 
 void function() #Function : {} {
-  type() <ID> <LB> paramList() <RB> <IS>
+  type() id() <LB> paramList() <RB> <IS>
   declList()
   <BEGIN>
   statementBlock()

@@ -22,4 +22,4 @@
 hs_err_pid*
 
 # Since I'm only writing .jj files and the .javas are generated...
-*.java
+AST*.java
