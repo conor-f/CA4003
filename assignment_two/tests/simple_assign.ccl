@@ -1,0 +1,7 @@
+main
+begin
+  var a:integer;
+  const b:integer = 22;
+
+  a = 2;
+end

@@ -1,1 +1,1 @@
-rm -fr *.class && rm -fr *.java && rm -fr *.jj
+rm -fr *.class && rm -fr *.jj

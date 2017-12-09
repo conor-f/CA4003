@@ -10,8 +10,11 @@ options {
   JAVA_UNICODE_ESCAPE = true;
   IGNORE_CASE = true;
   LOOKAHEAD = 1;
-  DEBUG_PARSER = true;
+  //DEBUG_PARSER = true;
+  //Needed?
+  MULTI=true;
   NODE_DEFAULT_VOID = true;
+  VISITOR = true;
 }
 
 
@@ -46,6 +49,16 @@ PARSER_BEGIN(Parser)
         SimpleNode root = parser.program();
         System.out.println("Program parsed successfully.");
         root.dump("");
+        
+        System.out.println("-----------------------------");
+        System.out.println("PRINT VISITOR OUTPUT:");
+        System.out.println("-----------------------------");
+        ParserPrintVisitor pv = new ParserPrintVisitor();
+        root.jjtAccept(pv, null);
+        System.out.println("-----------------------------");
+
+        //SemanticCheckVisitor scv = new SemanticCheckVisitor();
+        //root.jjtAccept(scv, null);
       } catch (ParseException e) {
         System.out.println(e.getMessage());
         System.out.println("Parser encountered errors during parse.");
@@ -174,19 +187,19 @@ void decl() : {} {
 }
 
 void varDecl() #VarDecl : {} {
-  <VAR> <ID> #ID <COLON> type()
+  <VAR> id() <COLON> type()
 }
 
 void constDecl() #ConstDecl : {} {
-  <CONST> <ID> #ID <COLON> type() <EQUALS> expression()
+  <CONST> id() <COLON> type() <EQUALS> expression()
 }
 
-void type() : {} {
-  <INTEGER> #IntegerType
+void type() : { Token t; } {
+  t = <INTEGER> { jjtThis.value = t; } #IntegerType
 |
-  <BOOLEAN> #BooleanType
+  t = <BOOLEAN> { jjtThis.value = t; } #BooleanType
 |
-  <VOID> #VoidType
+  t = <VOID> { jjtThis.value = t; } #VoidType
 }
 
 void functionList() : {} {
@@ -231,7 +244,7 @@ void nempParamList() #ParamList : {} {
 }
 
 void param() : {} {
-  (<ID> #ID <COLON> type()) #Param(2)
+  (id() <COLON> type()) #Param(2)
 }
 
 void main() #Main : {} {
@@ -257,10 +270,10 @@ void emptyStatementBlock() #EmptyStatementBlock : {} {
 }
 
 void statement() : {} {
-  (<ID> #ID statement_id())
-| (<BEGIN> statementBlock() <END>) #ScopingBlock
-| (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>) #IfStatement
-| (<WHILE> condition() <BEGIN> statementBlock() <END>) #WhileStatement
+  (id() statement_id())
+| <BEGIN> statementBlock() <END> #ScopingBlock
+| <IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END> #IfStatement
+| <WHILE> condition() <BEGIN> statementBlock() <END> #WhileStatement
 | (<SKIP_TOKEN> <SEMIC>) #SkipStatement
 }
 
@@ -271,8 +284,16 @@ void statement_id() : {} {
 
 void expression() #void : {} {
   (<LB> expression() <RB>)
-| (<ID> #ID expression_id())
-| (<MINUS> <ID> #NegativeID | <NUM> #Num | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()
+| (id() expression_id())
+| (<MINUS> <ID> #NegativeID | num() | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()
+}
+
+void id() #ID : {Token t;} {
+  t = <ID> {jjtThis.value = t.image;}
+}
+
+void num() #Num : {Token t;} {
+  t = <NUM> {jjtThis.value = t.image;}
 }
 
 void optionalBinOpExpr() : {} {
@@ -297,8 +318,8 @@ void condition() : {} {
 /* this is an issue here I couldn't get around. expanding expression() would
  * leave you with a choice conflict on <LB>. I limit it to only a "simple"
  * expression being allowed here. */
-| (<ID> #ID expression_id() compOpp_expr_cond_prime())
-| (((<MINUS> <ID> #NegNum | <NUM> #Num | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()) compOpp_expr_cond_prime())
+| (id() expression_id() compOpp_expr_cond_prime())
+| (((<MINUS> <ID> #NegNum | num() | <TRUE> #True | <FALSE> #False) optionalBinOpExpr()) compOpp_expr_cond_prime())
 }
 
 void condition_prime() : {} {
@@ -328,5 +349,5 @@ void emptyArgList() : {} {
 }
 
 void nempArgList() : {} {
-  (<ID> #ID) (<COMMA> <ID> #ID)*
+  (id()) (<COMMA> id())*
 }

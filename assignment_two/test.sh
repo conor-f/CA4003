@@ -5,3 +5,5 @@ echo "Compiled the jj file :) :)"
 javac *.java
 
 java Parser $1
+
+./clean.sh
