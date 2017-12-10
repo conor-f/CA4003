@@ -57,15 +57,20 @@ PARSER_BEGIN(Parser)
         root.jjtAccept(pv, null);
         System.out.println("-----------------------------");
 
-        //TypeCheckVisitor tcv = new TypeCheckVisitor();
-        //root.jjtAccept(tcv, null);
-
         System.out.println("-----------------------------");
         System.out.println("Running SymbolTableVisitor.");
         SymbolTableVisitor stv = new SymbolTableVisitor();
         root.jjtAccept(stv, null);
         SymbolTable st = stv.getSymbolTable();
         st.dump();
+        System.out.println("-----------------------------");
+
+        System.out.println("-----------------------------");
+        System.out.println("Running SemanticCheckVisitor.");
+        SemanticCheckVisitor scv = new SemanticCheckVisitor();
+        root.jjtAccept(scv, st);
+        scv.printErrors();
+        System.out.println("-----------------------------");
 
       } catch (ParseException e) {
         System.out.println(e.getMessage());
@@ -279,9 +284,9 @@ void emptyStatementBlock() #EmptyStatementBlock : {} {
 
 void statement() : {} {
   (id() statement_id())
-| <BEGIN> statementBlock() <END> #ScopingBlock
-| <IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END> #IfStatement
-| <WHILE> condition() <BEGIN> statementBlock() <END> #WhileStatement
+| (<BEGIN> statementBlock() <END>) #ScopingBlock
+| (<IF> condition() <BEGIN> statementBlock() <END> <ELSE> <BEGIN> statementBlock() <END>) #IfStatement
+| (<WHILE> condition() <BEGIN> statementBlock() <END>) #WhileStatement
 | (<SKIP_TOKEN> <SEMIC>) #SkipStatement
 }
 

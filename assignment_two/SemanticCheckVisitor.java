@@ -6,29 +6,58 @@
 
 import java.util.*;
 
-public class SymbolTableVisitor implements ParserVisitor
+public class SemanticCheckVisitor implements ParserVisitor
 {
 
-  SymbolTable symbolTable = new SymbolTable();
 
-  public SymbolTable getSymbolTable() {
-    return symbolTable;
+  private class SemanticErrorChecker {
+    String errorList = "";
+    SymbolTable inputSymbolTable;
+
+
+
+    public Boolean isDeclaredInScope(String var, String scope) {
+      return ((Hashtable)inputSymbolTable.ST.get(scope)).containsKey(var) || ((Hashtable)inputSymbolTable.ST.get("global")).containsKey(var);
+    }
+
+
+
+    public SemanticErrorChecker(SymbolTable st) {
+      inputSymbolTable = st;
+    }
+
+    public void printErrors() {
+      System.out.println(errorList);
+    }
+
+    public void dump() {
+      System.out.println("Analysis nd stuff...");
+    }
   }
 
-  // Initial scope is global.
-  // scope only changes at the start of functions so will be set to the
-  // function name then.
-  Stack<String> scope = new Stack();
+  SemanticErrorChecker sec;
+
+  public void printErrors() {
+    sec.printErrors();
+  }
 
   void dump() {
-    symbolTable.dump();
+    sec.dump();
   }
+
+  Stack<String> scope = new Stack();
 
   private void acceptAllChildren(Node n, Object d) {
     for(int i=0; i<n.jjtGetNumChildren(); i++) {
       n.jjtGetChild(i).jjtAccept(this, d);
     }
   }
+
+
+
+
+
+
 
   public Object visit(SimpleNode node, Object data)
   {
@@ -66,8 +95,6 @@ public class SymbolTableVisitor implements ParserVisitor
   }
 
   public Object visit(ASTConstDecl node, Object data) {
-    acceptAllChildren(node, data);
-
     ASTID idNode = (ASTID) node.jjtGetChild(0);
     String id = (String) idNode.value;
 
@@ -78,7 +105,8 @@ public class SymbolTableVisitor implements ParserVisitor
     String value = valueNode.value.toString();
 
     STC entry = new STC("const", type);
-    symbolTable.add(entry, id, scope.peek());
+
+    acceptAllChildren(node, data);
 
     return data;
   }
@@ -108,7 +136,7 @@ public class SymbolTableVisitor implements ParserVisitor
   }
 
   public Object visit(ASTFunction node, Object data) {
-    // Add function ID to symbol table first:
+    // Add to symbol table first:
     ASTID idNode = (ASTID) node.jjtGetChild(1);
     String functionName = (String) idNode.value;
 
@@ -123,7 +151,6 @@ public class SymbolTableVisitor implements ParserVisitor
     }
 
     STC entry = new STC("function", returnType, "ParamTypes:"+paramTypes);
-    symbolTable.add(entry, functionName, scope.peek());
 
     // Then change scope:
     scope.push(functionName);
@@ -156,6 +183,16 @@ public class SymbolTableVisitor implements ParserVisitor
 
   public Object visit(ASTID node, Object data) {
     acceptAllChildren(node, data);
+
+    //ASTID idNode = (ASTID) node.jjtGetChild(0);
+    String id = (String) node.value;
+
+    System.out.print(id+": ");
+    System.out.println(sec.isDeclaredInScope(id, scope.peek()));
+    //SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
+    //String type = typeNode.toString();
+
+    //STC entry = new STC("var", type);
 
     return data;
   }
@@ -241,15 +278,6 @@ public class SymbolTableVisitor implements ParserVisitor
   public Object visit(ASTParam node, Object data) {
     acceptAllChildren(node, data);
 
-    ASTID idNode = (ASTID) node.jjtGetChild(0);
-    String id = (String) idNode.value;
-
-    SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
-    String type = typeNode.toString();
-
-    STC entry = new STC("var", type);
-    symbolTable.add(entry, id, scope.peek());
-
     return data;
   }
 
@@ -266,6 +294,7 @@ public class SymbolTableVisitor implements ParserVisitor
   }
 
   public Object visit(ASTProgram node, Object data) {
+    sec = new SemanticErrorChecker((SymbolTable) data);
     // Now starting:
     scope.push("global");
 
@@ -315,7 +344,6 @@ public class SymbolTableVisitor implements ParserVisitor
     String type = typeNode.toString();
 
     STC entry = new STC("var", type);
-    symbolTable.add(entry, id, scope.peek());
 
     return data;
   }
