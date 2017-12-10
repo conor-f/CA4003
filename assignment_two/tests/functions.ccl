@@ -62,4 +62,8 @@ begin
   arg_1 = -6;
   arg_2 = five;
 
+  arg_2 = False + False;
+
+  arg_2 = (5 + False - five);
+
 end

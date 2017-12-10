@@ -43,6 +43,35 @@ public class SemanticCheckVisitor implements ParserVisitor
       }
     }
 
+    public String getTypeFromNode(SimpleNode n) {
+      String nType = n.getClass().getName();
+
+      switch(nType) {
+        case "ASTID": 
+          ASTID IDNode = (ASTID) n;
+          String id = IDNode.value.toString();
+          return this.getTypeFromID(id);
+
+        case "ASTNum": return "IntegerType";
+        case "ASTPlus": return "IntegerType";
+        case "ASTMinus": return "IntegerType";
+        case "ASTNegativeID": return "IntegerType";
+
+        case "ASTTrue": return "BooleanType";
+        case "ASTFalse": return "BooleanType";
+        case "Equal": return "BooleanType";
+        case "GreaterThan": return "BooleanType";
+        case "GreaterThanEqual": return "BooleanType";
+        case "LessThan": return "BooleanType";
+        case "LessThanEqual": return "BooleanType";
+        case "NotEqual": return "BooleanType";
+        case "BooleanOr": return "BooleanType";
+        case "BooleanAnd": return "BooleanType";
+
+        default: return "";
+      }
+    }
+
     public void checkAssignTypes(String id, String type) {
       String genericType = "";
       switch(type) {
@@ -70,7 +99,7 @@ public class SemanticCheckVisitor implements ParserVisitor
       }
     }
 
-    String getTypeFromID(String id) {
+    public String getTypeFromID(String id) {
       try {
         STC res = (STC) ((Hashtable) inputSymbolTable.ST.get(scope.peek())).get(id);
         return res.value;
@@ -328,6 +357,19 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
   public Object visit(ASTMinus node, Object data) {
+    SimpleNode firstTermNode = (SimpleNode) node.jjtGetChild(0);
+    String firstTerm = sec.getTypeFromNode(firstTermNode);
+
+    SimpleNode secondTermNode = (SimpleNode) node.jjtGetChild(1);
+    String secondTerm = sec.getTypeFromNode(secondTermNode);
+
+    if(firstTerm != "IntegerType") {
+      sec.addError("First term of minus op is not of integer type.\n");
+    }
+    if(secondTerm != "IntegerType") {
+      sec.addError("Second term of minus op is not of integer type.\n");
+    }
+
     acceptAllChildren(node, data);
 
     return data;
@@ -386,6 +428,19 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
   public Object visit(ASTPlus node, Object data) {
+    SimpleNode firstTermNode = (SimpleNode) node.jjtGetChild(0);
+    String firstTerm = sec.getTypeFromNode(firstTermNode);
+
+    SimpleNode secondTermNode = (SimpleNode) node.jjtGetChild(1);
+    String secondTerm = sec.getTypeFromNode(secondTermNode);
+
+    if(firstTerm != "IntegerType") {
+      sec.addError("First term of add op is not of integer type.\n");
+    }
+    if(secondTerm != "IntegerType") {
+      sec.addError("Second term of add op is not of integer type.\n");
+    }
+
     acceptAllChildren(node, data);
 
     return data;
