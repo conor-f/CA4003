@@ -14,12 +14,42 @@ public class SemanticCheckVisitor implements ParserVisitor
     String errorList = "";
     SymbolTable inputSymbolTable;
 
+    public void checkMethodArgs(ASTMethodCall node) {
+      ASTID methodIDNode = (ASTID) node.jjtGetChild(0);
+      String methodName = methodIDNode.value.toString();
 
+      Object tmethodSTC = getIDFromSymbolTable(methodName);
+      if(tmethodSTC == null) {
+        errorList += "No method in scope for ID "+methodName+".\n";
+        return;
+      }
+
+      STC methodSTC = (STC) tmethodSTC;
+      int numArgs = methodSTC.extras.length() - methodSTC.extras.replace("|", "").length();
+
+      int numPassedParams = node.jjtGetChild(1).jjtGetNumChildren();
+
+      if(numArgs != numPassedParams) {
+        errorList += "Wrong number of params passed to "+methodName+". Expected "+numArgs+" but got "+numPassedParams+".\n";
+      }
+
+    }
+
+    public Object getIDFromSymbolTable(String id) {
+      try {
+        STC inScope = (STC) ((Hashtable)inputSymbolTable.ST.get(scope.peek())).get(id);
+        if(inScope != null) {
+          return inScope;
+        }
+        return (STC) ((Hashtable)inputSymbolTable.ST.get("global")).get(id);
+      } catch (Exception f) {
+          return null;
+      }
+    }
 
     public Boolean isDeclaredInScope(String var, String scope) {
       return ((Hashtable)inputSymbolTable.ST.get(scope)).containsKey(var) || ((Hashtable)inputSymbolTable.ST.get("global")).containsKey(var);
     }
-
 
     // String ID -> int. If any are > 1, its been declared multiple times.
     Hashtable declTable;
@@ -31,15 +61,6 @@ public class SemanticCheckVisitor implements ParserVisitor
         this.addError(id+" declared multiple times in "+scope+".\n");
       } else {
         declTable.put(scopedID, true);
-      }
-    }
-
-    public void checkAssignTypeWithID(String id, String secondID) {
-      String neededType = this.getTypeFromID(id);
-      String gotType = this.getTypeFromID(secondID);
-
-      if(neededType != gotType) {
-        errorList += "Needed type " + neededType + " for ID " + id + " but got type " + gotType + " from ID " + secondID + ".\n";
       }
     }
 
@@ -104,7 +125,6 @@ public class SemanticCheckVisitor implements ParserVisitor
         }
       }
     }
-
 
     public SemanticErrorChecker(SymbolTable st) {
       inputSymbolTable = st;
@@ -359,6 +379,10 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
   public Object visit(ASTMethodCall node, Object data) {
+    // Checking if there's a function for each method call semcheck is done
+    // with id.
+    sec.checkMethodArgs(node);
+
     acceptAllChildren(node, data);
 
     return data;
