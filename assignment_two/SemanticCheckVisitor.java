@@ -32,7 +32,6 @@ public class SemanticCheckVisitor implements ParserVisitor
       if(numArgs != numPassedParams) {
         errorList += "Wrong number of params passed to "+methodName+". Expected "+numArgs+" but got "+numPassedParams+".\n";
       }
-
     }
 
     public Object getIDFromSymbolTable(String id) {
@@ -60,7 +59,42 @@ public class SemanticCheckVisitor implements ParserVisitor
       if(declTable.containsKey(scopedID)) {
         this.addError(id+" declared multiple times in "+scope+".\n");
       } else {
-        declTable.put(scopedID, true);
+        declTable.put(scopedID, new boolean[]{false, false});
+      }
+    }
+
+    public void logIDReadFrom(String id) {
+      String scopedID = scope.peek()+"."+id;
+
+      if(declTable.containsKey(scopedID)) {
+        boolean[] curr = (boolean[]) declTable.get(scopedID);
+        curr[0] = true;
+        declTable.put(scopedID, curr);
+      }
+    }
+
+    public void logIDWrittenTo(String id) {
+      String scopedID = scope.peek()+"."+id;
+
+      if(declTable.containsKey(scopedID)) {
+        boolean[] curr = (boolean[]) declTable.get(scopedID);
+        curr[1] = true;
+        declTable.put(scopedID, curr);
+      }
+    }
+
+    public void checkAllVarsReadAndWritten() {
+      Enumeration ids = declTable.keys();
+      while(ids.hasMoreElements()) {
+        String id = (String) ids.nextElement();
+        boolean[] val = (boolean[]) declTable.get(id);
+
+        if(!val[0]) {
+          errorList += "ID "+id+" was never read from.\n";
+        }
+        if(!val[1]) {
+          errorList += "ID "+id+" was never written to.\n";
+        }
       }
     }
 
@@ -163,9 +197,7 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
 
-
-
-
+  boolean inAssign = false;
 
 
   public Object visit(SimpleNode node, Object data)
@@ -180,12 +212,21 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
   public Object visit(ASTAssign node, Object data) {
-    acceptAllChildren(node, data);
+    inAssign = true;
+    node.jjtGetChild(0).jjtAccept(this, data);
+    inAssign = false;
+
+    for(int i=1; i<node.jjtGetNumChildren(); i++) {
+      node.jjtGetChild(i).jjtAccept(this, data);
+    }
+
 
     ASTID lhs = (ASTID) node.jjtGetChild(0);
     SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
 
     sec.checkAssignTypes(lhs, rhs);
+
+    sec.logIDWrittenTo(lhs.value.toString());
 
     return data;
   }
@@ -244,9 +285,8 @@ public class SemanticCheckVisitor implements ParserVisitor
     SimpleNode valueNode = (SimpleNode) node.jjtGetChild(2);
     String value = valueNode.value.toString();
 
-    STC entry = new STC("const", type);
-
     sec.declareID(id, scope.peek());
+    sec.logIDWrittenTo(id);
 
     acceptAllChildren(node, data);
 
@@ -334,10 +374,9 @@ public class SemanticCheckVisitor implements ParserVisitor
       sec.addError("id " + id + " is not declared in scope " + scope.peek() + ".\n");
     }
 
-    //SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
-    //String type = typeNode.toString();
-
-    //STC entry = new STC("var", type);
+    if(!inAssign) {
+      sec.logIDReadFrom(id);
+    }
 
     return data;
   }
@@ -484,6 +523,8 @@ public class SemanticCheckVisitor implements ParserVisitor
     scope.push("global");
 
     acceptAllChildren(node, data);
+
+    sec.checkAllVarsReadAndWritten();
 
     return data;
   }
