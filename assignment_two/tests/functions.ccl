@@ -66,4 +66,6 @@ begin
 
   arg_2 = (5 + False - five);
 
+  result = multiply(arg_1, arg_2);
+
 end

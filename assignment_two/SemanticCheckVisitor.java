@@ -52,6 +52,16 @@ public class SemanticCheckVisitor implements ParserVisitor
           String id = IDNode.value.toString();
           return this.getTypeFromID(id);
 
+        case "ASTMethodCall": 
+          ASTMethodCall methodCallNode = (ASTMethodCall) n;
+          ASTID MethodIDNode = (ASTID) methodCallNode.jjtGetChild(0);
+          String methodName = MethodIDNode.value.toString();
+          switch(this.getTypeFromID(methodName)) {
+            case "integer": return "IntegerType";
+            case "boolean": return "BooleanType";
+            case "void": return "VoidType";
+          }
+
         case "ASTNum": return "IntegerType";
         case "ASTPlus": return "IntegerType";
         case "ASTMinus": return "IntegerType";
@@ -72,30 +82,12 @@ public class SemanticCheckVisitor implements ParserVisitor
       }
     }
 
-    public void checkAssignTypes(String id, String type) {
-      String genericType = "";
-      switch(type) {
-        case "Plus": genericType = "IntegerType"; break;
-        case "Minus": genericType = "IntegerType"; break;
-        case "Num": genericType = "IntegerType"; break;
-        case "NegativeID": genericType = "IntegerType"; break;
+    public void checkAssignTypes(SimpleNode t1, SimpleNode t2) {
+      String neededType = this.getTypeFromNode(t1);
+      String gottenType = this.getTypeFromNode(t2);
 
-        case "True": genericType = "BooleanType"; break;
-        case "False": genericType = "BooleanType"; break;
-        case "Equal": genericType = "BooleanType"; break;
-        case "GreaterThan": genericType = "BooleanType"; break;
-        case "GreaterThanEqual": genericType = "BooleanType"; break;
-        case "LessThan": genericType = "BooleanType"; break;
-        case "LessThanEqual": genericType = "BooleanType"; break;
-        case "NotEqual": genericType = "BooleanType"; break;
-        case "BooleanOr": genericType = "BooleanType"; break;
-        case "BooleanAnd": genericType = "BooleanType"; break;
-        default: break;
-      }
-
-      String neededType = this.getTypeFromID(id);
-      if(neededType != genericType) {
-        errorList += "Needed type " + neededType + " but got type " + genericType + " for ID " + id + ".\n";
+      if(neededType != gottenType) {
+        errorList += "Needed type " + neededType + " but got type " + gottenType + ".\n";
       }
     }
 
@@ -170,20 +162,10 @@ public class SemanticCheckVisitor implements ParserVisitor
   public Object visit(ASTAssign node, Object data) {
     acceptAllChildren(node, data);
 
-    ASTID idNode = (ASTID) node.jjtGetChild(0);
-    String id = (String) idNode.value;
+    ASTID lhs = (ASTID) node.jjtGetChild(0);
+    SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
 
-    SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
-    String type = typeNode.toString();
-
-    if(typeNode instanceof ASTID) {
-      ASTID secondNode = (ASTID) typeNode;
-      String secondID = secondNode.value.toString();
-
-      sec.checkAssignTypeWithID(id, secondID);
-    } else {
-      sec.checkAssignTypes(id, type);
-    }
+    sec.checkAssignTypes(lhs, rhs);
 
     return data;
   }
@@ -504,7 +486,6 @@ public class SemanticCheckVisitor implements ParserVisitor
     acceptAllChildren(node, data);
 
     return data;
-
   }
 
   public Object visit(ASTTrue node, Object data) {
