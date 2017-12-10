@@ -59,14 +59,14 @@ public class SemanticCheckVisitor implements ParserVisitor
 
         case "ASTTrue": return "BooleanType";
         case "ASTFalse": return "BooleanType";
-        case "Equal": return "BooleanType";
-        case "GreaterThan": return "BooleanType";
-        case "GreaterThanEqual": return "BooleanType";
-        case "LessThan": return "BooleanType";
-        case "LessThanEqual": return "BooleanType";
-        case "NotEqual": return "BooleanType";
-        case "BooleanOr": return "BooleanType";
-        case "BooleanAnd": return "BooleanType";
+        case "ASTEqual": return "BooleanType";
+        case "ASTGreaterThan": return "BooleanType";
+        case "ASTGreaterThanEqual": return "BooleanType";
+        case "ASTLessThan": return "BooleanType";
+        case "ASTLessThanEqual": return "BooleanType";
+        case "ASTNotEqual": return "BooleanType";
+        case "ASTBooleanOr": return "BooleanType";
+        case "ASTBooleanAnd": return "BooleanType";
 
         default: return "";
       }
@@ -189,12 +189,38 @@ public class SemanticCheckVisitor implements ParserVisitor
   }
 
   public Object visit(ASTBooleanAnd node, Object data) {
+    SimpleNode firstTermNode = (SimpleNode) node.jjtGetChild(0);
+    String firstTerm = sec.getTypeFromNode(firstTermNode);
+
+    SimpleNode secondTermNode = (SimpleNode) node.jjtGetChild(1);
+    String secondTerm = sec.getTypeFromNode(secondTermNode);
+
+    if(firstTerm != "BooleanType") {
+      sec.addError("First term of AND op is of type "+firstTerm+".\n");
+    }
+    if(secondTerm != "BooleanType") {
+      sec.addError("Second term of AND op is of type "+secondTerm+".\n");
+    }
+
     acceptAllChildren(node, data);
 
     return data;
   }
 
   public Object visit(ASTBooleanOr node, Object data) {
+    SimpleNode firstTermNode = (SimpleNode) node.jjtGetChild(0);
+    String firstTerm = sec.getTypeFromNode(firstTermNode);
+
+    SimpleNode secondTermNode = (SimpleNode) node.jjtGetChild(1);
+    String secondTerm = sec.getTypeFromNode(secondTermNode);
+
+    if(firstTerm != "BooleanType") {
+      sec.addError("First term of OR op is not of Boolean type.\n");
+    }
+    if(secondTerm != "BooleanType") {
+      sec.addError("Second term of OR op is not of Boolean type.\n");
+    }
+
     acceptAllChildren(node, data);
 
     return data;
