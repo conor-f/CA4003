@@ -34,6 +34,55 @@ public class SemanticCheckVisitor implements ParserVisitor
       }
     }
 
+    public void checkAssignTypeWithID(String id, String secondID) {
+      String neededType = this.getTypeFromID(id);
+      String gotType = this.getTypeFromID(secondID);
+
+      if(neededType != gotType) {
+        errorList += "Needed type " + neededType + " for ID " + id + " but got type " + gotType + " from ID " + secondID + ".\n";
+      }
+    }
+
+    public void checkAssignTypes(String id, String type) {
+      String genericType = "";
+      switch(type) {
+        case "Plus": genericType = "IntegerType"; break;
+        case "Minus": genericType = "IntegerType"; break;
+        case "Num": genericType = "IntegerType"; break;
+        case "NegativeID": genericType = "IntegerType"; break;
+
+        case "True": genericType = "BooleanType"; break;
+        case "False": genericType = "BooleanType"; break;
+        case "Equal": genericType = "BooleanType"; break;
+        case "GreaterThan": genericType = "BooleanType"; break;
+        case "GreaterThanEqual": genericType = "BooleanType"; break;
+        case "LessThan": genericType = "BooleanType"; break;
+        case "LessThanEqual": genericType = "BooleanType"; break;
+        case "NotEqual": genericType = "BooleanType"; break;
+        case "BooleanOr": genericType = "BooleanType"; break;
+        case "BooleanAnd": genericType = "BooleanType"; break;
+        default: break;
+      }
+
+      String neededType = this.getTypeFromID(id);
+      if(neededType != genericType) {
+        errorList += "Needed type " + neededType + " but got type " + genericType + " for ID " + id + ".\n";
+      }
+    }
+
+    String getTypeFromID(String id) {
+      try {
+        STC res = (STC) ((Hashtable) inputSymbolTable.ST.get(scope.peek())).get(id);
+        return res.value;
+      } catch (Exception e) {
+        try {
+          STC res = (STC) ((Hashtable) inputSymbolTable.ST.get("global")).get(id);
+          return res.value;
+        } catch (Exception f) {
+          return "";
+        }
+      }
+    }
 
 
     public SemanticErrorChecker(SymbolTable st) {
@@ -91,6 +140,21 @@ public class SemanticCheckVisitor implements ParserVisitor
 
   public Object visit(ASTAssign node, Object data) {
     acceptAllChildren(node, data);
+
+    ASTID idNode = (ASTID) node.jjtGetChild(0);
+    String id = (String) idNode.value;
+
+    SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
+    String type = typeNode.toString();
+
+    if(typeNode instanceof ASTID) {
+      ASTID secondNode = (ASTID) typeNode;
+      String secondID = secondNode.value.toString();
+
+      sec.checkAssignTypeWithID(id, secondID);
+    } else {
+      sec.checkAssignTypes(id, type);
+    }
 
     return data;
   }

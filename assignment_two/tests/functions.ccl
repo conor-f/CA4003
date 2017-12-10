@@ -7,7 +7,7 @@ begin
   if (x<0 && y >=0)
   begin
     minus_sign = true;
-    x = -x;
+    x = mins_sign;
   end
   else
   begin
