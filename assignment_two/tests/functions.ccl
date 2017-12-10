@@ -1,6 +1,7 @@
 integer multiply (x:integer, y:integer) is
   var result:integer;
   var mins_sign : boolean;
+  var x:integer;
 begin
   // Figure out sign of result and convert args to absolute values.
   if (x<0 && y >=0)

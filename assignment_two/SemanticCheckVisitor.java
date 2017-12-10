@@ -21,13 +21,32 @@ public class SemanticCheckVisitor implements ParserVisitor
     }
 
 
+    // String ID -> int. If any are > 1, its been declared multiple times.
+    Hashtable declTable;
+
+    public void declareID(String id, String scope) {
+      String scopedID = scope+"."+id;
+
+      if(declTable.containsKey(scopedID)) {
+        this.addError(id+" declared multiple times in "+scope+".\n");
+      } else {
+        declTable.put(scopedID, true);
+      }
+    }
+
+
 
     public SemanticErrorChecker(SymbolTable st) {
       inputSymbolTable = st;
+      declTable = new Hashtable();
     }
 
     public void printErrors() {
       System.out.println(errorList);
+    }
+
+    public void addError(String error) {
+      errorList += error;
     }
 
     public void dump() {
@@ -106,6 +125,8 @@ public class SemanticCheckVisitor implements ParserVisitor
 
     STC entry = new STC("const", type);
 
+    sec.declareID(id, scope.peek());
+
     acceptAllChildren(node, data);
 
     return data;
@@ -150,6 +171,8 @@ public class SemanticCheckVisitor implements ParserVisitor
       paramTypes += "|"+p.jjtGetChild(1).toString();
     }
 
+    sec.declareID(functionName, scope.peek());
+
     STC entry = new STC("function", returnType, "ParamTypes:"+paramTypes);
 
     // Then change scope:
@@ -184,11 +207,12 @@ public class SemanticCheckVisitor implements ParserVisitor
   public Object visit(ASTID node, Object data) {
     acceptAllChildren(node, data);
 
-    //ASTID idNode = (ASTID) node.jjtGetChild(0);
     String id = (String) node.value;
 
-    System.out.print(id+": ");
-    System.out.println(sec.isDeclaredInScope(id, scope.peek()));
+    if(!sec.isDeclaredInScope(id, scope.peek())) {
+      sec.addError("id " + id + " is not declared in scope " + scope.peek() + ".\n");
+    }
+
     //SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
     //String type = typeNode.toString();
 
@@ -278,6 +302,16 @@ public class SemanticCheckVisitor implements ParserVisitor
   public Object visit(ASTParam node, Object data) {
     acceptAllChildren(node, data);
 
+    ASTID idNode = (ASTID) node.jjtGetChild(0);
+    String id = (String) idNode.value;
+
+    SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
+    String type = typeNode.toString();
+
+    STC entry = new STC("var", type);
+    sec.declareID(id, scope.peek());
+    //symbolTable.add(entry, id, scope.peek());
+
     return data;
   }
 
@@ -342,6 +376,8 @@ public class SemanticCheckVisitor implements ParserVisitor
 
     SimpleNode typeNode = (SimpleNode) node.jjtGetChild(1);
     String type = typeNode.toString();
+
+    sec.declareID(id, scope.peek());
 
     STC entry = new STC("var", type);
 
