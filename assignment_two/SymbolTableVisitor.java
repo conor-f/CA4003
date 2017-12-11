@@ -1,9 +1,3 @@
-// Name:PrintVisitor.java
-// Author: David Sinclair      Date: 29 Aug 2012
-//
-// Visitor for type checking an abstract syntax tree in the ExprLang language
-//
-
 import java.util.*;
 
 public class SymbolTableVisitor implements ParserVisitor

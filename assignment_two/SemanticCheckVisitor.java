@@ -1,15 +1,7 @@
-// Name:PrintVisitor.java
-// Author: David Sinclair      Date: 29 Aug 2012
-//
-// Visitor for type checking an abstract syntax tree in the ExprLang language
-//
-
 import java.util.*;
 
 public class SemanticCheckVisitor implements ParserVisitor
 {
-
-
   private class SemanticErrorChecker {
     String errorList = "";
     SymbolTable inputSymbolTable;
@@ -172,20 +164,12 @@ public class SemanticCheckVisitor implements ParserVisitor
     public void addError(String error) {
       errorList += error;
     }
-
-    public void dump() {
-      System.out.println("Analysis nd stuff...");
-    }
   }
 
   SemanticErrorChecker sec;
 
   public void printErrors() {
     sec.printErrors();
-  }
-
-  void dump() {
-    sec.dump();
   }
 
   Stack<String> scope = new Stack();
